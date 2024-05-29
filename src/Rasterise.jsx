@@ -1,91 +1,116 @@
-import { useEffect, useRef } from 'react';
-import p5 from 'p5';
+import { useEffect, useRef, useMemo } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
+import { TextureLoader } from 'three';
+import * as THREE from 'three';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 
-const Rasterise = ({ imagePath, canvasRef }) => {
-    
+const Rasterise = ({ imageOption,  canvasRef }) => {
+  const instancedMeshRef = useRef();
+  const tileSize = useRef();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const tiles = 100;
+  const totalTiles = tiles * tiles;
+  const zMin = -150;
+  const zMax = 150;
+  const threshold = 0;
+  // let imagePath = './src/assets/r.png'
+  let texture;
+  
+  function image (imageOption){
+    let imagePath;
+    switch (imageOption) {
+        case 0:   
+            imagePath = './src/assets/r.png';
+            break;
+        case 1:
+            imagePath = './src/assets/n.png';
+            break;
+        case 2:
+            imagePath = './src/assets/p.png';
+            break;
+        default:
+            imagePath = './src/assets/g2.png';
+        }
+    return imagePath;
+}
+  let imagePath = image(imageOption);
+  // let texture = useLoader(TextureLoader, imagePath);
+  const { geometry, colors, initialPositions } = useMemo(() => {
+    texture = useLoader(TextureLoader, imagePath);
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 400;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
 
-    useEffect(() => {
-        const sketch = (p) => {
-            let img;
-            let threshold = 0;
-            let sf = 1.25;
-            let tileSize;
-            const tiles = 100;
-            const zMin = -150;
-            const zMax = 100;
-            const totalTiles = tiles*tiles
-      
-            p.preload = () => {
-              img = p.loadImage(imagePath);
-    
-            };
-      
-            p.setup = () => {
-              p.createCanvas(900, 900, p.WEBGL);
-              img.resize(Math.floor(800/sf), Math.floor(800/sf));
-              tileSize = p.width / tiles;
-            };
-      
-            p.draw = () => {
-              p.translate(-p.width / 2, -p.height / 2);
-              p.background("#09090b");
-              p.fill(225);
-              p.stroke(225);
-              p.push();
-              p.translate(p.width / 2, p.height / 2, 0);
-              p.rotateY(p.radians(p.frameCount));
-             
-              
-              for(let i =0 ; i< totalTiles; i++){
-                let x = i % Math.floor(tiles);
-                let y = i / Math.floor(tiles);
+    const tileSizeValue = canvas.width / tiles;
+    tileSize.current = tileSizeValue;
+    const geom = new THREE.SphereGeometry(tileSizeValue * 0.15, 16, 16);
+    const colorArray = [];
+    const positions = [];
 
-                let imgX = Math.floor((x*tileSize)/sf);
-                let imgY = Math.floor((y*tileSize)/sf);
-                let c = img.get(imgX, imgY);
-                let b = p.map(p.brightness(c), 0, 255, 1, 0);
+    for (let i = 0; i < totalTiles; i++) {
+      const x = i % tiles;
+      const y = Math.floor(i / tiles);
+      const imgX = Math.floor(x * tileSizeValue);
+      const imgY = Math.floor(y * tileSizeValue);
+      const c = context.getImageData(imgX, imgY, texture.image.width / tiles, texture.image.height / tiles).data;
+      const b = (c[0] + c[1] + c[2]) / (255 * 3);
 
-                if (p.brightness(c) > threshold) {
-                  let z = p.map(b, 0, 1, zMin, zMax);
-                  p.push();
-                  p.translate(
-                    (x * tileSize - p.width / 2)/sf,
-                    (y * tileSize - p.height / 2)/sf,
-                    z
-                  );
-                  p.sphere(tileSize * b * 0.01, 2, 2);
-                  p.pop();
-                }
-              }
-              
-              // for (let x = 0; x < tiles; x++) {
-              //   for (let y = 0; y < tiles; y++) {
-              //     let c = img.get(p.int(x * tileSize/sf), p.int(y * tileSize/sf));
-              //     let b = p.map(p.brightness(c), 0, 255, 1, 0);
-              //     if (p.brightness(c) > threshold) {
-              //       let z = p.map(b, 0, 1, zMin, zMax);
-              //       p.push();
-              //       p.translate(
-              //         (x * tileSize - p.width / 2)/sf,
-              //         (y * tileSize - p.height / 2)/sf,
-              //         z
-              //       );
-              //       p.sphere(tileSize * b * 0.01, 2, 2);
-              //       p.pop();
-              //     }
-              //   }
-              // }
-              p.pop();
-            };
-          }; 
-          const p5I = new p5(sketch, canvasRef.current)
-      
-          return () => {
-            p5I.remove();
-          };
-        }, [canvasRef, imagePath]);
-      
-        return <div ref={canvasRef} className="flex justify-center items-center w-1/2 opacity-0"></div>;
-      };
+      if (b > threshold) {
+        colorArray.push(c[0] / 255, c[1] / 255, c[2] / 255);
+        const z = THREE.MathUtils.mapLinear(b, 0, 1, zMin, zMax);
+        dummy.position.set((x * tileSizeValue - canvas.width / 2), (canvas.height / 1.7 - y * tileSizeValue), z);
+        dummy.updateMatrix();
+        positions.push(dummy.matrix.clone());
+      }
+    }
+
+    return {
+      geometry: geom,
+      colors: new Float32Array(colorArray),
+      initialPositions: positions
+    };
+  }, [texture]);
+
+  useEffect(() => {
+    if (instancedMeshRef.current) {
+      instancedMeshRef.current.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+      initialPositions.forEach((matrix, i) => {
+        instancedMeshRef.current.setMatrixAt(i, matrix);
+      });
+
+      instancedMeshRef.current.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
+      instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [initialPositions, colors]);
+
+  const material = useMemo(() => new THREE.ShaderMaterial({
+    vertexShader: `
+      attribute vec3 instanceColor;
+      varying vec3 vColor;
+      void main() {
+        vColor = instanceColor;
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+      }
+    `,
+    vertexColors: true
+  }), []);
+
+  return (
+      <instancedMesh ref={instancedMeshRef} args={[geometry, material, initialPositions.length]} rotateY={1}>
+        <sphereGeometry args={[tileSize.current * 0.15, 16, 16]} />
+        <primitive attach="material" object={material} />
+      </instancedMesh>
+  );
+}
 
 export default Rasterise;

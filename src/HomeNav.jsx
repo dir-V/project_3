@@ -20,10 +20,10 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
     })
       .fromTo(
         canvas,
-        { x: "0vw", y: "-100vh" },
+        { x: "0vw", y: "ovh" },
         {
           x: "0vw",
-          y: "-100vh",
+          y: "0vh",
           opacity: 1,
           duration: 2,
           ease: "power1.out",
@@ -37,24 +37,17 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
         { x: "0vw", y: "0vh" },
         {
           x: "-32vw",
-          y: "-25vh",
+          y: "-27vh",
           scale: 0.65,
           duration: 1,
           ease: "power4.inOut",
-          delay: 1,
+          delay: 1.2,
         }
       )
-      // .to(title, { x:'-35vw', y:'-30vh', scale: 0.65, duration: 1, ease: 'power4.inOut', delay: 1.1})
-      // .to(canvas, {
-      //   x: "10vw",
-      //   y: "-100vh",
-      //   opacity: 1,
-      //   duration: 0.9,
-      //   ease: "power2.out",
-      // })
+  
       .fromTo(
         options,
-        { x: "-32vw", y: "-25vh" },
+        { x: "-32vw", y: "-27vh" },
         {
           x: "-32vw",
           y: "-20vh",
@@ -62,18 +55,13 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
           duration: 0.5,
           stagger: 0.2,
           ease: "power1.out",
+          pointerEvents: "auto",
         },
-        "-=0.5"
+        '-=0.1'
       )
-      .set([title, options, canvas], { pointerEvents: "auto" });
-    // .fromTo(canvas, { x: '0vw', y: '-100vh'}, {x: '0vw', y: '-100vh', opacity: 1, duration: 1.2, ease: 'power1.out', delay:0.5}, '=0.5');
-    // .set(title, {opacity: 1, delay: 1.1})
-    // .fromTo(title, { x: '0vw', y: '0vh'}, { x: '-31vw', y: '-25vh', scale: 0.65, duration: 1, ease: 'power4.inOut', delay: 1.1})
-    // .fromTo(options, { x: '-35vw', y: '0vh'}, { x: '-31vw', y: '-20vh', opacity: 1, duration: 0.5, stagger: 0.2, ease: 'power1.out' }, '=0.5');
   }, []);
   return (
-    <div className="flex bg-[#09090b] items-center justify-center font-avante h-screen h-svh">
-      <div className="flex absolute z-10 flex-col text-center text-slate-200">
+      <div className="flex absolute z-20 flex-col h-full w-full text-center text-slate-200 justify-center items-center font-avante">
         <h1 ref={titleRef} className="text-9xl tracking-tightest">
           PROJECT_3
         </h1>
@@ -87,7 +75,6 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
           >
             EXPLORE
           </Link>
-
           <Link
             to="/contact"
             ref={(el) => (optionsRef.current[1] = el)}
@@ -109,7 +96,6 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
           </Link>
         </div>
       </div>
-    </div>
   );
 };
 

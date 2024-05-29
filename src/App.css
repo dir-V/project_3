@@ -10,7 +10,6 @@
 html, body {
   padding: 0;
   margin: 0;
-  overflow: hidden;
-  background-color:teal;
-  
+  overflow: show;
+  background-color: #09090b;
 }

@@ -7,6 +7,9 @@ import Explore from './Explore';
 import About from './About';
 import Contact from './Contact';
 import { Route, Routes } from 'react-router-dom';
+import Rasterise from './Rasterise';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, PerspectiveCamera, Stats } from '@react-three/drei';
 const App = () => {
   // const titleRef = useRef(null);
   // const optionsRef = useRef([]);
@@ -36,17 +39,26 @@ const App = () => {
 
   return (
     <>
-   
     <HomeNav canvasRef={canvasRef} handleOptionSel={handleOptionSel} />
-    <ImageSpheres canvasRef ={canvasRef} imageOption={imageOption}/>
-
-    {/* <Routes>
+    <div ref = {canvasRef} className='absolute z-10 h-full w-full'>
+      <Canvas>
+        <PerspectiveCamera 
+        makeDefault 
+        position={[0,0,450]}
+        lookAt={[0,0,0]}
+        args={[70, window.innerWidth/window.innerHeight, 0.1, 1000]}
+        />
+      <ImageSpheres imageOption={imageOption}/>
+      </Canvas>
+    </div>
+       {/* <Routes>
         <Route path="/" element={<><HomeNav canvasRef={canvasRef} handleOptionSel={handleOptionSel} /><ImageSpheres canvasRef ={canvasRef} imageOption={imageOption}/></>} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
     </Routes> */}
     </>
+    
   );
 };
 
