@@ -5,8 +5,8 @@ import { TextureLoader } from 'three';
 import { gsap } from 'gsap';
 import { PerspectiveCamera, useTexture } from '@react-three/drei';
 
-const ImageSpheres = ({ imageOption }) => {
-  const { scene, gl: renderer } = useThree();
+const ImageSpheres = ({cameraRef, imageOption }) => {
+  const { scene, gl: renderer, camera } = useThree();
   const animationRef = useRef(0);
   const instancedMeshRef = useRef();
   const initialPositionsRef = useRef([]);
@@ -56,10 +56,9 @@ const ImageSpheres = ({ imageOption }) => {
         return './src/assets/g2.png';
     }
   };
-  
+
   const createMesh = async (imagePath) => {
     const imgTexture = await new THREE.TextureLoader().loadAsync(imagePath);
-   
     imgTexture.minFilter = THREE.LinearFilter;
     imgTexture.magFilter = THREE.LinearFilter;
     imgTexture.needsUpdate = true;
@@ -100,7 +99,6 @@ const ImageSpheres = ({ imageOption }) => {
     initialPositionsRef.current = initialPositions;
     instancedMeshRef.current = instancedMesh;
     animationRef.current += 1;
-    console.log(animationRef.current)
   };
 
   const animateMesh = () => {
@@ -136,7 +134,6 @@ const ImageSpheres = ({ imageOption }) => {
       }
       if (allAtTarget) {
         setAnimateMeshDone(true);
-        console.log("done!");
       }
       instancedMesh.instanceMatrix.needsUpdate = true;
       instancedMesh.rotation.y += 0.0065;
@@ -166,7 +163,6 @@ const ImageSpheres = ({ imageOption }) => {
       }
       instancedMesh.instanceMatrix.needsUpdate = true;
       if (allAtOrigin) {
-        console.log("allAtOrigin")
         animationRef.current -= 1
         setCollapsed(true);
         setAnimateMeshDone(false);

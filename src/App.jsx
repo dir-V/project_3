@@ -7,19 +7,27 @@ import Explore from './Explore';
 import About from './About';
 import Contact from './Contact';
 import { Route, Routes } from 'react-router-dom';
-import Rasterise from './Rasterise';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Stats } from '@react-three/drei';
 const App = () => {
   // const titleRef = useRef(null);
   // const optionsRef = useRef([]);
   const canvasRef = useRef(null);
+  const cameraRef = useRef(null)
   const [imageOption, setImageOption] = useState(null);
   const handleOptionSel = (i) => {
     setImageOption(i)
   }
 
-  
+  const animateCamera = () =>{
+    const camera = cameraRef.current;
+    if(camera){
+      gsap.to(camera.position, 
+        {x: -100, duration: 1, ease:'power4.inOut', delay: 1.2}
+      );
+      camera.lookAt(0, 0, 0)
+    }
+  }
 
   // useEffect(() => {
   //   const title = titleRef.current;
@@ -39,10 +47,11 @@ const App = () => {
 
   return (
     <>
-    <HomeNav canvasRef={canvasRef} handleOptionSel={handleOptionSel} />
+    <HomeNav canvasRef={canvasRef} handleOptionSel={handleOptionSel} animateCamera={animateCamera}/>
     <div ref = {canvasRef} className='absolute z-10 h-full w-full'>
       <Canvas>
-        <PerspectiveCamera 
+        <PerspectiveCamera
+        ref={cameraRef}
         makeDefault 
         position={[0,0,450]}
         lookAt={[0,0,0]}

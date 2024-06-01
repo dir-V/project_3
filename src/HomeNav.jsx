@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { Link } from "react-router-dom";
 
-const HomeNav = ({ canvasRef, handleOptionSel }) => {
+const HomeNav = ({ animateCamera, canvasRef, handleOptionSel }) => {
   const titleRef = useRef(null);
   const optionsRef = useRef([]);
-  // // const canvasRef = useRef(null);
+  
 
   useEffect(() => {
     const title = titleRef.current;
@@ -20,7 +20,7 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
     })
       .fromTo(
         canvas,
-        { x: "0vw", y: "ovh" },
+        { x: "0vw", y: "0vh" },
         {
           x: "0vw",
           y: "0vh",
@@ -31,7 +31,7 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
         },
         '=0.5'
       )
-      .set(title, { opacity: 1 })
+      .set(title, { opacity: 1, onComplete: animateCamera,})
       .fromTo(
         title,
         { x: "0vw", y: "0vh" },
@@ -57,9 +57,10 @@ const HomeNav = ({ canvasRef, handleOptionSel }) => {
           ease: "power1.out",
           pointerEvents: "auto",
         },
-        '-=0.1'
+        "-=0.1"
       )
   }, []);
+
   return (
       <div className="flex absolute z-20 flex-col h-full w-full text-center text-slate-200 justify-center items-center font-avante">
         <h1 ref={titleRef} className="text-9xl tracking-tightest">
